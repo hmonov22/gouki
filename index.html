@@ -515,7 +515,9 @@
                             </div>
 
                             <p class="text-gray-300 leading-relaxed text-lg mb-8">
-                                JBL positions itself as a brand for the bold, the young, and the expressive. Unlike brands like Bose (which focuses on quiet, executive luxury) or Sony (which focuses on technical perfection), JBL focuses on energy, bass, and durability.
+                                JBL positions itself as a brand for the bold, the young, and the expressive. Unlike
+                                brands like Bose (which focuses on quiet, executive luxury) or Sony (which focuses on
+                                technical perfection), JBL focuses on energy, bass, and durability.
                             </p>
 
                             <div class="project-details-grid">
@@ -535,7 +537,7 @@
                                     <div class="detail-item-header">
                                         <i data-lucide="grid" class="detail-item-icon"></i> Category
                                     </div>
-                                    <span class="detail-item-value">Brandinf</span>
+                                    <span class="detail-item-value">Branding</span>
                                 </div>
                                 <div class="detail-item">
                                     <div class="detail-item-header">
@@ -692,7 +694,7 @@
 
             <div class="container mx-auto px-6 lg:px-12 relative z-10">
                 <div
-                    class="max-w-6xl mx-auto glass-panel rounded-[2.5rem] p-8 md:p-16 lg:p-20 relative overflow-hidden reveal group border-accent/20 hover:border-accent/40 transition-colors duration-500">
+                    class="max-w-6xl mx-auto glass-panel rounded-[2.5rem] p-8 md:p-16 lg:p-20 relative overflow-hidden group border-accent/20 hover:border-accent/40 transition-colors duration-500">
                     <!-- Ambient Glow inside Card -->
                     <div
                         class="absolute -top-40 -right-40 w-96 h-96 bg-accent/20 rounded-full blur-[100px] group-hover:bg-accent/30 transition-colors duration-1000 pointer-events-none">
@@ -734,7 +736,7 @@
                                             class="text-xs font-mono text-gray-500 uppercase tracking-widest mb-1 truncate">
                                             Drop a message</p>
                                         <p class="text-base md:text-xl font-medium text-white truncate">
-                                            dinaogouki@gmail.com</p>
+                                            hmyat0407@gmail.com</p>
                                     </div>
                                 </div>
                                 <div
@@ -775,7 +777,7 @@
 
                 <!-- Footer Bottom -->
                 <div
-                    class="container mx-auto px-6 lg:px-12 mt-20 pt-8 border-t border-glassBorder flex flex-col md:flex-row justify-between items-center gap-6 reveal">
+                    class="container mx-auto px-6 lg:px-12 mt-20 pt-8 border-t border-glassBorder flex flex-col md:flex-row justify-between items-center gap-6">
                     <div class="flex items-center gap-3">
                         <div class="relative flex h-3 w-3">
                             <span
@@ -991,7 +993,7 @@
                     ease: "power2.out",
                     scrollTrigger: {
                         trigger: el,
-                        start: "top 85%",
+                        start: "top 95%",
                         toggleActions: "play none none reverse"
                     }
                 }
@@ -1131,9 +1133,9 @@
                             // Refresh GSAP ScrollTrigger to recalculate element positions after overflow is removed
                             setTimeout(() => {
                                 if (typeof ScrollTrigger !== 'undefined') {
-                                    ScrollTrigger.refresh();
+                                    ScrollTrigger.refresh(true);
                                 }
-                            }, 150);
+                            }, 300);
                         }
                     }, 1000); // Wait for css transition
                 }
@@ -1143,6 +1145,4 @@
     </script>
 </body>
 
-
 </html>
-
