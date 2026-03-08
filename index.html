@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gouki - Premium UI/UX Designer</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Three.js for 3D Background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <!-- Vanilla Tilt -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        mono: ['Space Mono', 'monospace'],
+                    },
+                    colors: {
+                        accent: '#ffb400',
+                        dark: '#050507',
+                        glass: 'rgba(255, 255, 255, 0.03)',
+                        glassBorder: 'rgba(255, 255, 255, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050507;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* 3D Canvas Background */
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(10, 10, 15, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            transform-style: preserve-3d;
+        }
+
+        /* Scroll Reveal Animations */
+        .reveal {
+            visibility: hidden;
+            /* GSAP will handle visibility and opacity */
+        }
+
+        /* 3D Card Container */
+        .card-3d-wrap {
+            perspective: 1000px;
+        }
+
+        .card-3d {
+            transform-style: preserve-3d;
+            /* Transition handled dynamically by Vanilla-Tilt */
+        }
+
+        .card-content-3d {
+            transform: translateZ(50px);
+            /* Pops the content out of the card */
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #050507;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ffb400;
+        }
+
+        /* Glowing Text */
+        .text-glow {
+            text-shadow: 0 0 20px rgba(255, 180, 0, 0.3);
+        }
+
+        /* Scroll Spy Active State */
+        .nav-link.active {
+            color: #ffb400;
+        }
+
+        /* Project Details Styling */
+        .project-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .detail-item-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #d1d5db;
+            /* gray-300 */
+            font-size: 0.875rem;
+            /* sm */
+        }
+
+        .detail-item-icon {
+            color: #ffb400;
+            /* accent */
+            width: 1.25rem;
+            /* 20px */
+            height: 1.25rem;
+        }
+
+        .detail-item-value {
+            color: white;
+            font-size: 0.875rem;
+            /* sm */
+        }
+
+        /* Premium 3D Button */
+        .btn-premium-3d {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, #ffb400, #ff8c00);
+            color: #050507;
+            font-weight: 700;
+            border-radius: 9999px;
+            overflow: hidden;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, color 0.4s ease;
+            box-shadow: 0 4px 15px rgba(255, 180, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.875rem;
+            transform-style: preserve-3d;
+        }
+
+        .btn-premium-3d::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.5), transparent);
+            transform: skewX(-20deg);
+            transition: all 0.6s ease;
+        }
+
+        .btn-premium-3d:hover {
+            transform: translateY(-5px) scale(1.02) translateZ(10px);
+            box-shadow: 0 15px 25px rgba(255, 180, 0, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.6);
+            color: #000;
+        }
+
+        .btn-premium-3d:hover::before {
+            left: 150%;
+        }
+
+        .btn-premium-3d:active {
+            transform: translateY(2px) scale(0.98);
+            box-shadow: 0 2px 10px rgba(255, 180, 0, 0.3);
+        }
+
+        /* Premium 3D Splash Screen Animations */
+        @keyframes textReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(100px) rotateX(-40deg) scale(0.8);
+                filter: blur(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotateX(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes float3D {
+
+            0%,
+            100% {
+                transform: translateY(0) rotateX(5deg) rotateY(-5deg);
+                text-shadow: 0 10px 20px rgba(255, 180, 0, 0.2),
+                    0 20px 40px rgba(255, 180, 0, 0.1),
+                    0 0px 50px rgba(255, 180, 0, 0.4);
+            }
+
+            50% {
+                transform: translateY(-15px) rotateX(-5deg) rotateY(5deg);
+                text-shadow: 0 25px 30px rgba(255, 180, 0, 0.1),
+                    0 35px 50px rgba(255, 180, 0, 0.05),
+                    0 0px 70px rgba(255, 180, 0, 0.5);
+            }
+        }
+
+        @keyframes expandLine {
+            0% {
+                width: 0%;
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                width: 100%;
+                opacity: 0;
+            }
+        }
+
+        .splash-text-container {
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        .splash-text {
+            animation: textReveal 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+                float3D 4s ease-in-out infinite 1.5s;
+            transform-origin: center bottom;
+            will-change: transform, opacity, filter, text-shadow;
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-accent selection:text-dark relative overflow-hidden" id="main-body">
+
+    <!-- Premium 3D Text Splash Screen -->
+    <div id="splash-screen"
+        class="fixed inset-0 z-[100] bg-dark flex flex-col items-center justify-center transition-all duration-1000">
+
+        <div class="splash-text-container flex flex-col items-center relative z-10">
+            <div
+                class="text-accent font-serif text-6xl md:text-8xl lg:text-9xl font-bold tracking-widest splash-text text-glow">
+                GOUKI.</div>
+
+            <!-- Animated Underline Effect -->
+            <div class="h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent mt-6 mb-8 absolute bottom-0 left-1/2 -translate-x-1/2"
+                style="animation: expandLine 3s ease-in-out infinite;"></div>
+
+            <p
+                class="font-mono text-gray-400 tracking-[0.3em] uppercase text-xs mt-10 opacity-0 animate-[textReveal_1s_ease-out_1s_forwards]">
+                Digital Reality
+            </p>
+        </div>
+
+        <!-- Subtle Background Glow for text -->
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/5 rounded-full blur-[100px] z-0 animate-pulse">
+        </div>
+    </div>
+
+    <!-- 3D WebGL Background -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-500 py-6 border-b border-transparent">
+        <div class="container mx-auto px-6 lg:px-12 flex justify-between items-center">
+            <div
+                class="text-accent font-serif text-2xl md:text-3xl font-bold tracking-widest cursor-pointer text-glow z-50">
+                GOUKI.</div>
+
+            <div class="hidden md:flex space-x-10 text-xs tracking-widest font-mono text-gray-400 uppercase">
+                <a href="#home" class="nav-link hover:text-accent transition-colors active">Home</a>
+                <a href="#about" class="nav-link hover:text-accent transition-colors">About</a>
+                <a href="#projects" class="nav-link hover:text-accent transition-colors">Work</a>
+                <a href="#skills" class="nav-link hover:text-accent transition-colors">Skills</a>
+            </div>
+
+            <div class="hidden md:block">
+                <a href="#contact"
+                    class="px-6 py-3 border border-glassBorder rounded-full text-sm font-medium hover:bg-accent hover:text-dark hover:border-accent transition-all duration-300">
+                    Let's Talk
+                </a>
+            </div>
+
+            <!-- Mobile Menu Btn -->
+            <button class="md:hidden text-white z-50" id="mobileMenuBtn">
+                <i data-lucide="menu" class="w-8 h-8"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobileMenu"
+        class="fixed inset-0 bg-dark/95 backdrop-blur-xl z-40 flex flex-col justify-center items-center translate-x-full transition-transform duration-500 md:hidden">
+        <div class="flex flex-col space-y-8 text-center text-xl font-mono uppercase tracking-widest text-gray-300">
+            <a href="#home" class="mobile-link hover:text-accent transition-colors">Home</a>
+            <a href="#about" class="mobile-link hover:text-accent transition-colors">About</a>
+            <a href="#projects" class="mobile-link hover:text-accent transition-colors">Work</a>
+            <a href="#skills" class="mobile-link hover:text-accent transition-colors">Skills</a>
+            <a href="#contact"
+                class="mobile-link hover:text-accent transition-colors text-accent border border-accent/30 py-3 px-8 rounded-full mt-4">Let's
+                Talk</a>
+        </div>
+    </div>
+
+    <!-- Main Content Overlay -->
+    <main class="relative z-10">
+
+        <!-- Hero Section -->
+        <section id="home" class="min-h-screen flex items-center pt-20">
+            <div class="container mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="reveal order-2 lg:order-1">
+                    <p class="font-mono text-accent tracking-[0.2em] uppercase text-sm mb-6 flex items-center gap-4">
+                        <span class="w-12 h-[1px] bg-accent"></span> GOUKI UI/UX
+                    </p>
+                    <h1 class="text-5xl md:text-7xl lg:text-8xl font-serif font-bold leading-[1.1] mb-8">
+                        Designing<br>
+                        <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-orange-600 text-glow">Digital</span><br>
+                        Reality.
+                    </h1>
+                    <p class="text-gray-400 text-lg md:text-xl font-light max-w-lg mb-10 leading-relaxed">
+                        I am Gouki, crafting immersive, human-centered digital experiences that blend aesthetics with
+                        engineering.
+                    </p>
+                    <div class="flex gap-6">
+                        <a href="#projects"
+                            class="bg-accent text-dark px-8 py-4 rounded-full font-bold hover:bg-white transition-all flex items-center gap-2 group">
+                            Explore Work <i data-lucide="arrow-down-right"
+                                class="w-5 h-5 group-hover:rotate-12 transition-transform"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 3D floating Element Placeholder (Handled by WebGL behind, but keeping a glass card for visual weight) -->
+                <div class="reveal order-1 lg:order-2 flex justify-center lg:justify-end relative">
+                    <div
+                        class="w-64 h-80 md:w-80 md:h-[450px] glass-panel rounded-[2rem] p-4 relative overflow-hidden group">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-tr from-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                        </div>
+                        <img src="1.png" alt="Gouki Portrait"
+                            class="w-full h-full object-cover rounded-xl filter grayscale group-hover:grayscale-0 transition-all duration-700">
+
+                        <!-- Floating Glass Badge -->
+                        <div
+                            class="absolute bottom-8 -left-8 glass-panel p-4 rounded-xl flex items-center gap-4 animate-[bounce_4s_infinite]">
+                            <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+                            <span class="font-mono text-xs tracking-widest uppercase">Available for work</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-32 relative">
+            <div class="container mx-auto px-6 lg:px-12">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
+                    <div class="lg:col-span-5 reveal">
+                        <h2 class="text-4xl md:text-6xl font-serif font-bold mb-6">The Mind<br>Behind The <span
+                                class="text-accent italic">Pixels.</span></h2>
+                    </div>
+                    <div
+                        class="lg:col-span-7 reveal glass-panel p-8 md:p-12 rounded-3xl text-gray-300 font-light leading-relaxed text-lg relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-[50px]"></div>
+                        <p class="mb-6 relative z-10">
+                            I don't just draw screens; I engineer emotions. As a UI/UX Designer, my philosophy revolves
+                            around the intersection of <strong class="text-white font-medium">cognitive psychology and
+                                modern aesthetic trends</strong>.
+                        </p>
+                        <p class="mb-6 relative z-10">
+                            Every project begins with deep user empathy, transitioning into wireframes, and ultimately
+                            manifesting as high-fidelity, interactive prototypes. I believe a product is only as good as
+                            how it makes the user feel.
+                        </p>
+                        <div class="grid grid-cols-2 gap-8 mt-12 border-t border-glassBorder pt-8 relative z-10">
+                            <div style="transform: translateZ(40px);">
+                                <h4 class="text-4xl font-serif text-accent mb-2">3+</h4>
+                                <p class="font-mono text-xs uppercase tracking-widest text-gray-500">Months Experience
+                                </p>
+                            </div>
+                            <div style="transform: translateZ(40px);">
+                                <h4 class="text-4xl font-serif text-accent mb-2">3</h4>
+                                <p class="font-mono text-xs uppercase tracking-widest text-gray-500">Projects Shipped
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section (3D Tilt Cards) -->
+        <section id="projects" class="py-32 relative">
+            <div class="container mx-auto px-6 lg:px-12">
+                <div class="reveal mb-20 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <p class="font-mono text-accent tracking-[0.2em] uppercase text-sm mb-4">Selected Works</p>
+                        <h2 class="text-5xl md:text-7xl font-serif font-bold">Featured <span
+                                class="italic text-gray-500">Projects</span></h2>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-20">
+
+                    <!-- Project Card 1 (Detailed View) -->
+                    <div class="reveal grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        <div class="lg:col-span-7 card-3d-wrap w-full">
+                            <div class="card-3d glass-panel rounded-[2rem] p-2 relative h-[300px] md:h-[500px]">
+                                <div class="card-content-3d w-full h-full rounded-[1.5rem] overflow-hidden relative">
+                                    <img src="Real estate(1)(1) (1).png" class="w-full h-full object-cover"
+                                        alt="Aura Real Estate">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-5 flex flex-col justify-center">
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="w-1 h-8 bg-accent rounded-full"></div>
+                                <h3 class="text-4xl font-serif font-bold text-accent">Aura Project Details</h3>
+                            </div>
+
+                            <p class="text-gray-300 leading-relaxed text-lg mb-8">
+                                Aura Real Estate is a modern brand advertisement website designed to inspire and
+                                motivate high-end buyers. As a conceptual fan project, it focuses on creating a
+                                high-energy visual experience that promotes luxury living through a sleek, user-centric
+                                interface.
+                            </p>
+
+                            <div class="project-details-grid">
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="clock" class="detail-item-icon"></i> Timeline
+                                    </div>
+                                    <span class="detail-item-value">1 Month (Conceptual Study)</span>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="user" class="detail-item-icon"></i> Role
+                                    </div>
+                                    <span class="detail-item-value">UI/UX Designer</span>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="grid" class="detail-item-icon"></i> Category
+                                    </div>
+                                    <span class="detail-item-value">Branding Advertise Website</span>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="pen-tool" class="detail-item-icon"></i> Tools
+                                    </div>
+                                    <span class="detail-item-value">Figma</span>
+                                </div>
+                            </div>
+
+                            <a href="https://www.figma.com/proto/gBHrwJxQIJzzFy1iCgE4PI/real-estate?node-id=129-30&p=f&t=TZhAmbHS0RQvaqev-0&scaling=scale-down&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=129%3A30"
+                                class="mt-4 btn-premium-3d w-max flex items-center gap-2">
+                                View My Project <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Project Card 2 (Detailed View) -->
+                    <div class="reveal grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        <div class="lg:col-span-5 flex flex-col justify-center order-2 lg:order-1">
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="w-1 h-8 bg-accent rounded-full"></div>
+                                <h3 class="text-4xl font-serif font-bold text-accent">Dash Analytics Details</h3>
+                            </div>
+
+                            <p class="text-gray-300 leading-relaxed text-lg mb-8">
+                                DASH is a powerful analytics tool for social media managers. The challenge was to
+                                display complex data sets without overwhelming the user. We utilized a clean, grid-based
+                                layout with a soothing dark color palette to reduce eye strain during long work
+                                sessions.
+                            </p>
+
+                            <div class="project-details-grid">
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="clock" class="detail-item-icon"></i> Timeline
+                                    </div>
+                                    <span class="detail-item-value">2 Months</span>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="user" class="detail-item-icon"></i> Role
+                                    </div>
+                                    <span class="detail-item-value">Frontend Dev</span>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="grid" class="detail-item-icon"></i> Category
+                                    </div>
+                                    <span class="detail-item-value">Brandinf</span>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="pen-tool" class="detail-item-icon"></i> Tools
+                                    </div>
+                                    <span class="detail-item-value">Anti Gravity(Vibe Coding)</span>
+                                </div>
+                            </div>
+
+                            <a href="https://hmonov22.github.io/jblmyanmar/#discover"
+                                class="mt-4 btn-premium-3d w-max flex items-center gap-2">
+                                View My Project <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+
+                        <div class="lg:col-span-7 card-3d-wrap w-full order-1 lg:order-2">
+                            <div class="card-3d glass-panel rounded-[2rem] p-2 relative h-[300px] md:h-[500px]">
+                                <div class="card-content-3d w-full h-full rounded-[1.5rem] overflow-hidden relative">
+                                    <img src="JBL.png" class="w-full h-full object-cover" alt="Dashboard">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project Card 3 (Detailed View) -->
+                    <div class="reveal grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        <div class="lg:col-span-7 card-3d-wrap w-full">
+                            <div class="card-3d glass-panel rounded-[2rem] p-2 relative h-[300px] md:h-[500px]">
+                                <div class="card-content-3d w-full h-full rounded-[1.5rem] overflow-hidden relative">
+                                    <img src="Real estate(1)(1) (1).png" onerror="this.src='Real estaete(1)(1).png'"
+                                        class="w-full h-full object-cover" alt="Aura Real-Estate Mobile View">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-5 flex flex-col justify-center">
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="w-1 h-8 bg-accent rounded-full"></div>
+                                <h3 class="text-4xl font-serif font-bold text-accent">Aura Mobile View</h3>
+                            </div>
+
+                            <p class="text-gray-300 leading-relaxed text-lg mb-8">
+                                Expanding on the Aura Real Estate brand, this project focuses on delivering the
+                                high-end, luxury experience specifically tailored for mobile users. It emphasizes
+                                intuitive touch navigation, optimized asset loading, and a seamless property browsing
+                                experience.
+                            </p>
+
+                            <div class="project-details-grid">
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="clock" class="detail-item-icon"></i> Timeline
+                                    </div>
+                                    <span class="detail-item-value">2 Weeks</span>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="user" class="detail-item-icon"></i> Role
+                                    </div>
+                                    <span class="detail-item-value">Mobile UI/UX Designer</span>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="grid" class="detail-item-icon"></i> Category
+                                    </div>
+                                    <span class="detail-item-value">Mobile App Concept</span>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-header">
+                                        <i data-lucide="pen-tool" class="detail-item-icon"></i> Tools
+                                    </div>
+                                    <span class="detail-item-value">Figma</span>
+                                </div>
+                            </div>
+
+                            <a href="https://www.figma.com/design/gBHrwJxQIJzzFy1iCgE4PI/real-estate?node-id=1-4&p=f&t=wUFFb7dye5dVm1U3-0"
+                                class="mt-4 btn-premium-3d w-max flex items-center gap-2">
+                                View My Project <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-32 relative">
+            <div class="container mx-auto px-6 lg:px-12">
+                <div class="text-center mb-20 reveal">
+                    <h2 class="text-4xl md:text-6xl font-serif font-bold mb-4">Core <span
+                            class="text-accent italic">Capabilities</span></h2>
+                    <p class="text-gray-400 max-w-xl mx-auto font-light">Technologies and disciplines I command to build
+                        premium digital products.</p>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+                    <!-- Skill Item -->
+                    <div
+                        class="skill-card glass-panel p-8 rounded-2xl flex flex-col items-center justify-center gap-4 group hover:bg-white/5 transition-colors border border-transparent hover:border-accent/30">
+                        <i data-lucide="figma"
+                            class="w-10 h-10 text-gray-500 group-hover:text-accent transition-colors"></i>
+                        <span class="font-mono text-sm tracking-widest uppercase">Figma</span>
+                    </div>
+                    <div class="skill-card glass-panel p-8 rounded-2xl flex flex-col items-center justify-center gap-4 group hover:bg-white/5 transition-colors border border-transparent hover:border-accent/30"
+                        style="transition-delay: 100ms;">
+                        <i data-lucide="layers"
+                            class="w-10 h-10 text-gray-500 group-hover:text-accent transition-colors"></i>
+                        <span class="font-mono text-sm tracking-widest uppercase">Prototyping</span>
+                    </div>
+                    <div class="skill-card glass-panel p-8 rounded-2xl flex flex-col items-center justify-center gap-4 group hover:bg-white/5 transition-colors border border-transparent hover:border-accent/30"
+                        style="transition-delay: 200ms;">
+                        <i data-lucide="monitor-smartphone"
+                            class="w-10 h-10 text-gray-500 group-hover:text-accent transition-colors"></i>
+                        <span class="font-mono text-sm tracking-widest uppercase">Responsive</span>
+                    </div>
+                    <div class="skill-card glass-panel p-8 rounded-2xl flex flex-col items-center justify-center gap-4 group hover:bg-white/5 transition-colors border border-transparent hover:border-accent/30"
+                        style="transition-delay: 300ms;">
+                        <i data-lucide="code-2"
+                            class="w-10 h-10 text-gray-500 group-hover:text-accent transition-colors"></i>
+                        <span class="font-mono text-sm tracking-widest uppercase">Vibe Coding</span>
+                    </div>
+                    <div class="skill-card glass-panel p-8 rounded-2xl flex flex-col items-center justify-center gap-4 group hover:bg-white/5 transition-colors border border-transparent hover:border-accent/30"
+                        style="transition-delay: 400ms;">
+                        <i data-lucide="box"
+                            class="w-10 h-10 text-gray-500 group-hover:text-accent transition-colors"></i>
+                        <span class="font-mono text-sm tracking-widest uppercase">3D UI</span>
+                    </div>
+                    <div class="skill-card glass-panel p-8 rounded-2xl flex flex-col items-center justify-center gap-4 group hover:bg-white/5 transition-colors border border-transparent hover:border-accent/30"
+                        style="transition-delay: 500ms;">
+                        <i data-lucide="flask-conical"
+                            class="w-10 h-10 text-gray-500 group-hover:text-accent transition-colors"></i>
+                        <span class="font-mono text-sm tracking-widest uppercase">UX Research</span>
+                    </div>
+                    <div class="skill-card glass-panel p-8 rounded-2xl flex flex-col items-center justify-center gap-4 group hover:bg-white/5 transition-colors border border-transparent hover:border-accent/30"
+                        style="transition-delay: 600ms;">
+                        <i data-lucide="sparkles"
+                            class="w-10 h-10 text-gray-500 group-hover:text-accent transition-colors"></i>
+                        <span class="font-mono text-sm tracking-widest uppercase">Interactions</span>
+                    </div>
+                    <div class="skill-card glass-panel p-8 rounded-2xl flex flex-col items-center justify-center gap-4 group hover:bg-white/5 transition-colors border border-transparent hover:border-accent/30"
+                        style="transition-delay: 700ms;">
+                        <i data-lucide="component"
+                            class="w-10 h-10 text-gray-500 group-hover:text-accent transition-colors"></i>
+                        <span class="font-mono text-sm tracking-widest uppercase">Design System</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer / Contact -->
+        <footer id="contact" class="py-32 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-t from-accent/10 to-transparent z-0 pointer-events-none"></div>
+
+            <div class="container mx-auto px-6 lg:px-12 relative z-10">
+                <div
+                    class="max-w-6xl mx-auto glass-panel rounded-[2.5rem] p-8 md:p-16 lg:p-20 relative overflow-hidden reveal group border-accent/20 hover:border-accent/40 transition-colors duration-500">
+                    <!-- Ambient Glow inside Card -->
+                    <div
+                        class="absolute -top-40 -right-40 w-96 h-96 bg-accent/20 rounded-full blur-[100px] group-hover:bg-accent/30 transition-colors duration-1000 pointer-events-none">
+                    </div>
+                    <div
+                        class="absolute -bottom-40 -left-40 w-96 h-96 bg-orange-600/10 rounded-full blur-[100px] group-hover:bg-orange-600/20 transition-colors duration-1000 pointer-events-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+                        <div>
+                            <p
+                                class="font-mono text-accent tracking-[0.2em] uppercase text-sm mb-6 flex items-center gap-4">
+                                <span class="w-8 h-[1px] bg-accent"></span> Have an idea?
+                            </p>
+                            <h2 class="text-5xl md:text-7xl font-serif font-bold leading-[1.1] mb-8 text-glow">
+                                Let's build<br>something<br><span
+                                    class="italic text-transparent bg-clip-text bg-gradient-to-r from-accent to-orange-500">epic.</span>
+                            </h2>
+                            <p class="text-gray-400 text-lg font-light leading-relaxed max-w-md mb-8">
+                                Got an idea? Let's chat. I'm always ready to collaborate and bring awesome digital
+                                products to life.
+                            </p>
+                        </div>
+
+                        <div class="flex flex-col gap-5">
+                            <!-- Email Button -->
+                            <a href="mailto:hmyat0407@gmail.com"
+                                class="glass-panel p-6 rounded-2xl flex items-center justify-between gap-4 hover:bg-white/5 border border-glassBorder hover:border-accent/50 transition-all duration-300 group/btn relative overflow-hidden">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/5 to-accent/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000">
+                                </div>
+                                <div class="flex items-center gap-4 md:gap-5 relative z-10 min-w-0">
+                                    <div
+                                        class="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full bg-accent/10 flex items-center justify-center text-accent group-hover/btn:bg-accent group-hover/btn:text-dark transition-colors duration-300">
+                                        <i data-lucide="mail" class="w-5 h-5 md:w-6 md:h-6"></i>
+                                    </div>
+                                    <div class="text-left min-w-0">
+                                        <p
+                                            class="text-xs font-mono text-gray-500 uppercase tracking-widest mb-1 truncate">
+                                            Drop a message</p>
+                                        <p class="text-base md:text-xl font-medium text-white truncate">
+                                            dinaogouki@gmail.com</p>
+                                    </div>
+                                </div>
+                                <div
+                                    class="w-10 h-10 shrink-0 rounded-full border border-gray-700 flex items-center justify-center group-hover/btn:border-accent group-hover/btn:bg-accent/10 transition-all duration-300 relative z-10">
+                                    <i data-lucide="arrow-up-right"
+                                        class="w-5 h-5 text-gray-400 group-hover/btn:text-accent"></i>
+                                </div>
+                            </a>
+
+                            <!-- Meeting Button -->
+                            <a href="https://www.linkedin.com/in/htet-myat-99811a3a3"
+                                class="glass-panel p-6 rounded-2xl flex items-center justify-between gap-4 hover:bg-white/5 border border-glassBorder hover:border-accent/50 transition-all duration-300 group/btn relative overflow-hidden">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/5 to-accent/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000">
+                                </div>
+                                <div class="flex items-center gap-4 md:gap-5 relative z-10 min-w-0">
+                                    <div
+                                        class="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full bg-accent/10 flex items-center justify-center text-accent group-hover/btn:bg-accent group-hover/btn:text-dark transition-colors duration-300">
+                                        <i data-lucide="calendar" class="w-5 h-5 md:w-6 md:h-6"></i>
+                                    </div>
+                                    <div class="text-left min-w-0">
+                                        <p
+                                            class="text-xs font-mono text-gray-500 uppercase tracking-widest mb-1 truncate">
+                                            Schedule a meeting</p>
+                                        <p class="text-base md:text-xl font-medium text-white truncate">Book Discovery
+                                            Call</p>
+                                    </div>
+                                </div>
+                                <div
+                                    class="w-10 h-10 shrink-0 rounded-full border border-gray-700 flex items-center justify-center group-hover/btn:border-accent group-hover/btn:bg-accent/10 transition-all duration-300 relative z-10">
+                                    <i data-lucide="arrow-up-right"
+                                        class="w-5 h-5 text-gray-400 group-hover/btn:text-accent"></i>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Bottom -->
+                <div
+                    class="container mx-auto px-6 lg:px-12 mt-20 pt-8 border-t border-glassBorder flex flex-col md:flex-row justify-between items-center gap-6 reveal">
+                    <div class="flex items-center gap-3">
+                        <div class="relative flex h-3 w-3">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        </div>
+                        <p class="font-mono text-xs text-gray-400 uppercase tracking-widest">Available for freelance</p>
+                    </div>
+
+                    <p class="font-mono text-xs text-gray-600 uppercase tracking-widest hidden md:block">© 2026 Gouki
+                        Design</p>
+
+                    <div class="flex gap-6">
+                        <a href="https://www.instagram.com/dinaogouki" target="_blank"
+                            class="text-gray-400 hover:text-accent transition-colors hover:-translate-y-1 transform duration-300"><i
+                                data-lucide="instagram" class="w-5 h-5"></i></a>
+                        <a href="https://www.linkedin.com/in/htet-myat-99811a3a3" target="_blank"
+                            class="text-gray-400 hover:text-accent transition-colors hover:-translate-y-1 transform duration-300"><i
+                                data-lucide="linkedin" class="w-5 h-5"></i></a>
+                        <a href="#"
+                            class="text-gray-400 hover:text-accent transition-colors hover:-translate-y-1 transform duration-300"><i
+                                data-lucide="dribbble" class="w-5 h-5"></i></a>
+                    </div>
+
+                    <p class="font-mono text-xs text-gray-600 uppercase tracking-widest md:hidden">© 2026 Gouki Design
+                    </p>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        /* ==========================================
+           1. THREE.JS PREMIUM BACKGROUND ANIMATION
+           ========================================== */
+        const canvas = document.getElementById('webgl-canvas');
+        const scene = new THREE.Scene();
+
+        // Add subtle fog to blend into background
+        scene.fog = new THREE.FogExp2(0x050507, 0.0015);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create Particles (Abstract Data Wave)
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 1500; // Premium density
+
+        const posArray = new Float32Array(particlesCount * 3);
+        const colorsArray = new Float32Array(particlesCount * 3);
+
+        const color1 = new THREE.Color(0xffb400); // Accent Gold
+        const color2 = new THREE.Color(0x333333); // Dark Gray
+        const color3 = new THREE.Color(0xffffff); // White
+
+        for (let i = 0; i < particlesCount * 3; i += 3) {
+            // Distribute particles in a wide area
+            posArray[i] = (Math.random() - 0.5) * 100;     // x
+            posArray[i + 1] = (Math.random() - 0.5) * 100;   // y
+            posArray[i + 2] = (Math.random() - 0.5) * 50;    // z
+
+            // Mix colors
+            const mixRatio = Math.random();
+            let finalColor;
+            if (mixRatio < 0.2) finalColor = color1;
+            else if (mixRatio < 0.5) finalColor = color3;
+            else finalColor = color2;
+
+            colorsArray[i] = finalColor.r;
+            colorsArray[i + 1] = finalColor.g;
+            colorsArray[i + 2] = finalColor.b;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
+
+        // Custom Shader Material for glowing dots
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.15,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        // Add a central floating abstract object (Wireframe Icosahedron)
+        const geometry = new THREE.IcosahedronGeometry(8, 1);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xffb400,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.15
+        });
+        const shape = new THREE.Mesh(geometry, material);
+        shape.position.x = 15; // Move to right
+        scene.add(shape);
+
+        // GSAP Three.js Dynamic Scroll Animations
+        let threeParams = { cameraZ: 30, cameraY: 0, shapeRotSpeed: 0.002, particleRotSpeed: 0.001 };
+
+        gsap.to(threeParams, {
+            cameraZ: 15,
+            cameraY: -5,
+            shapeRotSpeed: 0.015,
+            particleRotSpeed: 0.005,
+            ease: "none",
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1.5
+            }
+        });
+
+        // Mouse Interaction Logic
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - windowHalfX);
+            mouseY = (event.clientY - windowHalfY);
+        });
+
+        // Scroll Logic for Camera
+        let scrollY = window.scrollY;
+        window.addEventListener('scroll', () => {
+            scrollY = window.scrollY;
+        });
+
+        // Animation Loop
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            // Smooth mouse follow
+            targetX = mouseX * 0.001;
+            targetY = mouseY * 0.001;
+
+            // Rotate Particle System slowly
+            particlesMesh.rotation.y += threeParams.particleRotSpeed;
+            particlesMesh.rotation.x += threeParams.particleRotSpeed * 0.5;
+
+            // Animate Abstract Shape
+            shape.rotation.x += threeParams.shapeRotSpeed;
+            shape.rotation.y += threeParams.shapeRotSpeed * 1.5;
+            // Float up and down
+            shape.position.y = Math.sin(elapsedTime * 0.5) * 2;
+
+            // Premium Parallax effect based on mouse
+            particlesMesh.rotation.y += 0.05 * (targetX - particlesMesh.rotation.y);
+            particlesMesh.rotation.x += 0.05 * (targetY - particlesMesh.rotation.x);
+
+            // Scroll effect managed by GSAP
+            camera.position.y += (threeParams.cameraY - camera.position.y) * 0.05;
+            camera.position.z += (threeParams.cameraZ - camera.position.z) * 0.05;
+            camera.position.x += ((scrollY * 0.002 + targetX * 2) - camera.position.x) * 0.05;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+
+        /* ==========================================
+           2. DOM ANIMATIONS & INTERACTIONS
+           ========================================== */
+
+        // Register GSAP Plugins
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Premium GSAP 3D Scroll Reveal Animation
+        const revealElements = document.querySelectorAll('.reveal');
+
+        revealElements.forEach((el) => {
+            gsap.fromTo(el,
+                {
+                    y: 80,
+                    autoAlpha: 0,
+                    rotationX: -15,
+                    transformPerspective: 1000,
+                    scale: 0.95
+                },
+                {
+                    y: 0,
+                    autoAlpha: 1,
+                    rotationX: 0,
+                    scale: 1,
+                    duration: 1.2,
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: el,
+                        start: "top 85%",
+                        toggleActions: "play none none reverse"
+                    }
+                }
+            );
+        });
+
+        // Staggered Reveal for Skills Grid
+        gsap.fromTo(".skill-card",
+            { y: 80, autoAlpha: 0, rotationX: -20, transformPerspective: 1000, scale: 0.9 },
+            {
+                y: 0, autoAlpha: 1, rotationX: 0, scale: 1, duration: 1, ease: "back.out(1.2)",
+                stagger: 0.1,
+                scrollTrigger: {
+                    trigger: "#skills",
+                    start: "top 75%",
+                    toggleActions: "play none none reverse"
+                }
+            }
+        );
+
+        // Navbar Glass effect on Scroll & Scroll Spy
+        const navbar = document.getElementById('navbar');
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+
+            // Scroll Spy Logic
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - sectionHeight / 3)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+
+            // Navbar Glass effect
+            if (window.scrollY > 50) {
+                navbar.classList.add('glass-panel', 'border-b', 'border-glassBorder');
+                navbar.classList.remove('border-transparent');
+                navbar.style.paddingTop = '1rem';
+                navbar.style.paddingBottom = '1rem';
+            } else {
+                navbar.classList.remove('glass-panel', 'border-b', 'border-glassBorder');
+                navbar.classList.add('border-transparent');
+                navbar.style.paddingTop = '1.5rem';
+                navbar.style.paddingBottom = '1.5rem';
+
+                // Reset active to Home if at top
+                navLinks.forEach(link => link.classList.remove('active'));
+                navLinks[0].classList.add('active');
+            }
+        });
+
+        // Initialize Vanilla-Tilt for Premium 3D Hover Effects
+        VanillaTilt.init(document.querySelectorAll(".card-3d, .glass-panel"), {
+            max: 10,
+            speed: 500,
+            glare: true,
+            "max-glare": 0.15,
+            easing: "cubic-bezier(.03,.98,.52,.99)",
+            perspective: 1000,
+            scale: 1.02
+        });
+
+        // Hero Section Interactive Parallax
+        const heroText = document.querySelector('#home .order-2.lg\\:order-1');
+        const heroImage = document.querySelector('#home .order-1.lg\\:order-2');
+
+        document.addEventListener("mousemove", (e) => {
+            const x = (window.innerWidth / 2 - e.pageX) / 40;
+            const y = (window.innerHeight / 2 - e.pageY) / 40;
+
+            if (heroText) {
+                gsap.to(heroText, { x: -x, y: -y, ease: "power2.out", duration: 1 });
+            }
+            if (heroImage) {
+                gsap.to(heroImage, { x: x, y: y, ease: "power2.out", duration: 1 });
+            }
+        });
+
+        // Mobile Menu Toggle Logic
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+        let menuOpen = false;
+
+        mobileMenuBtn.addEventListener('click', () => {
+            menuOpen = !menuOpen;
+            if (menuOpen) {
+                mobileMenu.classList.remove('translate-x-full');
+                mobileMenu.classList.add('translate-x-0');
+                mobileMenuBtn.innerHTML = '<i data-lucide="x" class="w-8 h-8"></i>';
+            } else {
+                mobileMenu.classList.add('translate-x-full');
+                mobileMenu.classList.remove('translate-x-0');
+                mobileMenuBtn.innerHTML = '<i data-lucide="menu" class="w-8 h-8"></i>';
+            }
+            lucide.createIcons();
+        });
+
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                menuOpen = false;
+                mobileMenu.classList.add('translate-x-full');
+                mobileMenu.classList.remove('translate-x-0');
+                mobileMenuBtn.innerHTML = '<i data-lucide="menu" class="w-8 h-8"></i>';
+                lucide.createIcons();
+            });
+        });
+
+        // --- SPLASH SCREEN LOGIC ONLY (No Three.js for splash) ---
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                const mainBody = document.getElementById('main-body');
+
+                if (splash) {
+                    // Start fade out and slide up effect
+                    splash.style.opacity = '0';
+                    splash.style.transform = 'translateY(-10px) scale(1.05)';
+                    splash.style.pointerEvents = 'none';
+
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                        if (mainBody) {
+                            mainBody.classList.remove('overflow-hidden');
+
+                            // Refresh GSAP ScrollTrigger to recalculate element positions after overflow is removed
+                            setTimeout(() => {
+                                if (typeof ScrollTrigger !== 'undefined') {
+                                    ScrollTrigger.refresh();
+                                }
+                            }, 150);
+                        }
+                    }, 1000); // Wait for css transition
+                }
+            }, 3000); // Show splash for 3 seconds
+        });
+
+    </script>
+</body>
+
+</html>
